@@ -1,6 +1,9 @@
 
 import tensorflow as tf
 import numpy as np
+import os
+import matplotlib.pyplot as plt
+import numpy as np
 import basic_gan as gan
 
 import matplotlib.pyplot as plt
@@ -8,16 +11,21 @@ from tensorflow.examples.tutorials.mnist import input_data
 # download mnist data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
+version = 1
+
 learning_rate = 0.0001
 
 max_steps = 1000
-print_steps = 50
-save_steps = 100
+print_steps = 100
+save_steps = 200
 summary_steps = 10
 
-logdir = "train/1"
+logdir = "train/{}".format(str(version))
 
 def save_sample_data(sample_data, global_step, max_print=8):
+    if not os.path.isdir("./samples/{}/".format(str(version))):
+        os.mkdir("samples/{}/".format(str(version)))
+
     sample_data = sample_data[:max_print, :]
     sample_img = np.reshape(sample_data, [max_print, 28, 28])
     sample_img = sample_img.swapaxes(0, 1)
@@ -26,7 +34,7 @@ def save_sample_data(sample_data, global_step, max_print=8):
     plt.figure(figsize=(max_print, 1))
     plt.axis('off')
     plt.imshow(sample_img)
-    plt.savefig('samples/global_step_{}.png'.format(str(global_step).zfill(3)), bbox_inches='tight')
+    plt.savefig('samples/{}/global_step_{}.png'.format(str(version), str(global_step).zfill(3)), bbox_inches='tight')
 
 
 def main(_):
@@ -64,18 +72,19 @@ def main(_):
                                                     sv.global_step,
                                                     model.loss_G])
 
-                if _global_step == 1 or _global_step % print_steps == 0:
+                if max_steps == 0 or max_steps % print_steps == 0:
                     # print ("loss D : %6f /t loss G : %6f" % [loss_D, loss_G])
+                    print ("step : %3d    global_step : %d   lossD : %.4f    lossG : %.4f" % i, _global_step, loss_D, loss_G)
                     print("step : ", i, "   loss D : ", loss_D, "   loss G : ", loss_G)
 
                     sample_img = sess.run(model.sample_data, feed_dict={})
                     save_sample_data(sample_img, _global_step)
 
-                if _global_step == 1 or _global_step % summary_steps == 0:
+                if max_steps == 0 or max_steps % summary_steps == 0:
                     summary_str = sess.run(summary_op, feed_dict={model.real_data: trainX})
                     sv.summary_computed(sess, summary_str)
 
-                if _global_step == 1 or _global_step % save_steps == 0:
+                if max_steps == 0 or max_steps % save_steps == 0:
                     tf.logging.info('Saving model with global step %d to disk.' % _global_step)
                     sv.saver.save(sess, sv.save_path, global_step=sv.global_step)
 

@@ -1,0 +1,8 @@
+
+.idea/
+basic_gan/samples/
+basic_gan/MNIST_data/
+basic_gan/train/
+basic_gan/__pycache__/
+
+*.pyc

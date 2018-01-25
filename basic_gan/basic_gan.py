@@ -2,9 +2,6 @@
 # GAN
 
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import numpy as np
-import os
 
 layers = tf.contrib.layers
 tf.reset_default_graph() # tensorboard graph reset
@@ -142,7 +139,7 @@ class GAN(object):
         tf.summary.scalar('losses/loss_D', self.loss_D)
         tf.summary.scalar('losses/loss_G', self.loss_G)
 
-        tf.summary.image('random_images', tf.reshape(self.generated_data, self.real_data_size), max_outputs=6)
+        tf.summary.image('sample_images', tf.reshape(self.sample_data, self.real_data_size), max_outputs=6)
         tf.summary.image('real_images', tf.reshape(self.real_data, self.real_data_size))
 
         print('complete model build.')
