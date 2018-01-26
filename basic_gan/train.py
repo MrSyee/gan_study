@@ -15,7 +15,7 @@ version = 1
 
 learning_rate = 0.0001
 
-epoch = 1000
+total_epoch = 1000
 print_steps = 100
 save_steps = 200
 summary_steps = 10
@@ -23,6 +23,8 @@ summary_steps = 10
 logdir = "train/{}".format(str(version))
 
 def save_sample_data(sample_data, global_step, max_print=8):
+    if not os.path.isdir("./samples/".format(str(version))):
+        os.mkdir("samples")
     if not os.path.isdir("./samples/{}/".format(str(version))):
         os.mkdir("samples/{}/".format(str(version)))
 
@@ -66,7 +68,7 @@ def main(_):
 
         total_batch = int(mnist.train.num_examples/model.batch_size)
 
-        for i in range(epoch):
+        for e in range(total_epoch):
             for _ in range(total_batch):
                 trainX = mnist.train.next_batch(model.batch_size)[0]
                 _, loss_D = sess.run([train_opt_D, model.loss_D], feed_dict={model.real_data:trainX})
@@ -74,18 +76,18 @@ def main(_):
                                                     sv.global_step,
                                                     model.loss_G])
 
-            if epoch == 0 or epoch % print_steps == 0:
+            if e == 0 or e % print_steps == 0:
                 # print ("loss D : %6f /t loss G : %6f" % [loss_D, loss_G])
-                print ("epoch : {:>5}  global_step : {:>5}  lossD : {:>5}  lossG : {:>5}".format(i, _global_step, loss_D, loss_G))
+                print ("epoch : {:>5}  global_step : {:>5}  lossD : {:>5}  lossG : {:>5}".format(e, _global_step, loss_D, loss_G))
 
                 sample_img = sess.run(model.sample_data, feed_dict={})
                 save_sample_data(sample_img, _global_step)
 
-            if epoch == 0 or epoch % summary_steps == 0:
+            if e == 0 or e % summary_steps == 0:
                 summary_str = sess.run(summary_op, feed_dict={model.real_data: trainX})
                 sv.summary_computed(sess, summary_str)
 
-            if epoch == 0 or epoch % save_steps == 0:
+            if e == 0 or e % save_steps == 0:
                 tf.logging.info('Saving model with global step %d to disk.' % _global_step)
                 sv.saver.save(sess, sv.save_path, global_step=sv.global_step)
 
