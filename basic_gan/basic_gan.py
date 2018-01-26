@@ -11,7 +11,7 @@ class GAN(object):
         # hyperparameter
         self.n_noise = 100
 
-        self.batch_size = 128
+        self.batch_size = 100
         self.n_hidden = 256
         self.n_output = 28*28
 

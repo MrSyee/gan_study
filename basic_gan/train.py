@@ -15,7 +15,7 @@ version = 1
 
 learning_rate = 0.0001
 
-max_steps = 1000
+epoch = 1000
 print_steps = 100
 save_steps = 200
 summary_steps = 10
@@ -64,29 +64,30 @@ def main(_):
     with sv.managed_session(config=sess_config) as sess:
         tf.logging.info('Start Session.')
 
-        for i in range(max_steps):
-            for _ in range(model.batch_size):
+        total_batch = int(mnist.train.num_examples/model.batch_size)
+
+        for i in range(epoch):
+            for _ in range(total_batch):
                 trainX = mnist.train.next_batch(model.batch_size)[0]
                 _, loss_D = sess.run([train_opt_D, model.loss_D], feed_dict={model.real_data:trainX})
                 _, _global_step, loss_G = sess.run([train_opt_G,
                                                     sv.global_step,
                                                     model.loss_G])
 
-                if max_steps == 0 or max_steps % print_steps == 0:
-                    # print ("loss D : %6f /t loss G : %6f" % [loss_D, loss_G])
-                    print ("step : %3d    global_step : %d   lossD : %.4f    lossG : %.4f" % i, _global_step, loss_D, loss_G)
-                    print("step : ", i, "   loss D : ", loss_D, "   loss G : ", loss_G)
+            if epoch == 0 or epoch % print_steps == 0:
+                # print ("loss D : %6f /t loss G : %6f" % [loss_D, loss_G])
+                print ("epoch : {:>5}  global_step : {:>5}  lossD : {:>5}  lossG : {:>5}".format(i, _global_step, loss_D, loss_G))
 
-                    sample_img = sess.run(model.sample_data, feed_dict={})
-                    save_sample_data(sample_img, _global_step)
+                sample_img = sess.run(model.sample_data, feed_dict={})
+                save_sample_data(sample_img, _global_step)
 
-                if max_steps == 0 or max_steps % summary_steps == 0:
-                    summary_str = sess.run(summary_op, feed_dict={model.real_data: trainX})
-                    sv.summary_computed(sess, summary_str)
+            if epoch == 0 or epoch % summary_steps == 0:
+                summary_str = sess.run(summary_op, feed_dict={model.real_data: trainX})
+                sv.summary_computed(sess, summary_str)
 
-                if max_steps == 0 or max_steps % save_steps == 0:
-                    tf.logging.info('Saving model with global step %d to disk.' % _global_step)
-                    sv.saver.save(sess, sv.save_path, global_step=sv.global_step)
+            if epoch == 0 or epoch % save_steps == 0:
+                tf.logging.info('Saving model with global step %d to disk.' % _global_step)
+                sv.saver.save(sess, sv.save_path, global_step=sv.global_step)
 
         tf.logging.info('complete training...')
 
